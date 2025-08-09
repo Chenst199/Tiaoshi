@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<title>照美丽的菜单 测试</title>
+<style>
+  body {font-family: Arial, sans-serif; background: #e0f2e9; margin: 0; padding: 10px;}
+  .dish {display: inline-block; width: 120px; margin: 8px; padding: 5px; background: #fff; border: 2px solid #aaa; border-radius: 8px; cursor: pointer; text-align: center;}
+  .dish.selected {border-color: green; background:#d1f0c1;}
+  .dish img {width: 100px; height: 80px; object-fit: cover; border-radius: 5px;}
+</style>
+</head>
+<body>
+<h2>照美丽的菜单 测试版</h2>
+<div id="menuList"></div>
+<button id="submitOrder">提交订单</button>
+
+<script>
+const menuData = [
+  {name:"宫保鸡丁", price:28, img:"https://img.meishij.net/p/20150814/201508141403462856629.jpg"},
+  {name:"麻婆豆腐", price:18, img:"https://img.meishij.net/p/20150820/201508201439164799446.jpg"},
+  {name:"鱼香肉丝", price:26, img:"https://img.meishij.net/p/20160111/201601111425487542780.jpg"},
+  {name:"酸辣粉", price:15, img:"https://img.meishij.net/p/20140901/201409011158399258238.jpg"},
+];
+
+let order = {};
+
+const menuList = document.getElementById("menuList");
+const submitOrderBtn = document.getElementById("submitOrder");
+
+function renderMenu() {
+  menuList.innerHTML = "";
+  menuData.forEach((dish, i) => {
+    const div = document.createElement("div");
+    div.className = "dish";
+    if(order[i]) div.classList.add("selected");
+    div.innerHTML = `<img src="${dish.img}" alt="${dish.name}"/><div>${dish.name}<br>¥${dish.price}</div>`;
+    div.onclick = () => {
+      if(order[i]) {
+        delete order[i];
+        div.classList.remove("selected");
+      } else {
+        order[i] = 1;
+        div.classList.add("selected");
+      }
+    };
+    menuList.appendChild(div);
+  });
+}
+
+submitOrderBtn.onclick = () => {
+  const keys = Object.keys(order);
+  if(keys.length === 0){
+    alert("请先选择菜品！");
+    return;
+  }
+  let orderText = "";
+  keys.forEach(i => {
+    orderText += `${menuData[i].name} × ${order[i]}; `;
+  });
+  console.log("提交订单内容:", orderText);
+
+  // 替换成你自己的Google表单action和字段名
+  const formAction = "https://docs.google.com/forms/d/e/1FAIpQLSerJIs1BXbw-80lN3okAEn5viTedr1D4uCiYgt51jz4HgvWrQ/formResponse";
+  const orderFieldName = "entry.1873846742";
+
+  const formData = new FormData();
+  formData.append(orderFieldName, orderText);
+
+  fetch(formAction, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  }).then(() => {
+    alert("订单已提交，谢谢！");
+    order = {};
+    renderMenu();
+  }).catch(() => {
+    alert("提交失败，请稍后再试");
+  });
+};
+
+renderMenu();
+</script>
+</body>
+</html>
